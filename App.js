@@ -9,6 +9,7 @@ export default function App() {
 
   const [areas, setAreas] = useState({});
   let zones = [];
+  let stats = [];
   const [address, setAddress] = useState('');
   const [destination, setDestination] = useState(
     {
@@ -29,6 +30,7 @@ export default function App() {
 
   useEffect(() => {
     fetchParkinglots();
+   // getStatistics();
     (async() => {
       let  { status} = await Location.requestForegroundPermissionsAsync();
       if  (status!==   'granted') {
@@ -42,7 +44,6 @@ export default function App() {
         latitudeDelta: 0.0322,
         longitudeDelta: 0.0221,
       })
-      //console.log(location);
     })();
     }, []);
   
@@ -52,7 +53,7 @@ export default function App() {
           try {
           const response = await fetch(url);
           const data = await response.json();
-          //setAreas(data);
+          setAreas(data);
           zones.push(data);
 
           url = data.next;
@@ -61,12 +62,30 @@ export default function App() {
           console.error(error);
           }
         } while (url !== null)
-        console.log(zones[0])
+       // console.log(zones[0])
+       
 
     }
 
+    const getStatistics = async() => {
+      let url = 'https://pubapi.parkkiopas.fi/public/v1/parking_area_statistics/'
+   //  do {
+        try {
+          const response = await fetch(url);
+          const statdata = await response.json();
+          stats.push(statdata.results);
+         // console.log(statdata)
+          url = statdata.next
+        }
+        catch(error) {
+        console.error(error);
+      }
+   //   } while (url !== null)
+   //   console.log(stats);
+    }
+
     const getCoordinates = address => {
-      console.log(address);
+      console.log(zones);
       fetch(`http://www.mapquestapi.com/geocoding/v1/address?key=KZm8i8wxroMvRbCHHiSfnrJzWshuzTma&location=${address}`)
       .then(response=>  response.json())
       .then(responseJson=>{ 
@@ -103,11 +122,15 @@ export default function App() {
     }
 
   
+  
+
+  
   return (
     <View style={styles.container}>
     <MapView
         style={styles.map}
         region={destination} >
+          
           
 {/**   console.log(areas.features[0].properties.capacity_estimate)
           {zones.map(zone=>{
@@ -137,6 +160,15 @@ export default function App() {
             }
             )}
            */}
+           <Geojson
+            tappable 
+            geojson= {areas}
+            strokeColor='blue'
+            onPress={()=>{ console.log('you tapped')}}
+            >
+            </Geojson>
+
+
            
             <Marker 
             title='You are here'
