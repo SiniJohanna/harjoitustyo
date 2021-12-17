@@ -7,7 +7,7 @@ import * as Location from 'expo-location';
 
 export default function App() {
 
-  const [areas, setAreas] = useState({});
+  const [areas, setAreas] = useState([]);
   let zones = [];
   let stats = [];
   const [address, setAddress] = useState('');
@@ -15,8 +15,8 @@ export default function App() {
     {
       latitude:60.17150364378772,
       longitude:24.952267526407198,
-      latitudeDelta:0.0322,
-      longitudeDelta:0.0221,
+      latitudeDelta:0.00322,
+      longitudeDelta:0.00221,
     }
   )
   const [myLocation, setMyLocation] = useState(
@@ -46,6 +46,22 @@ export default function App() {
       })
     })();
     }, []);
+
+    const getParinglots= () => { 
+      let url = 'https://pubapi.parkkiopas.fi/public/v1/parking_area/'
+      
+        fetch(url)
+      .then(response=>  response.json())
+      .then(responseJson=>{ 
+        setAreas(responseJson)
+        zones.push(responseJson)
+        console.log(responseJson)
+        url = responseJson.next;
+      //  console.log(zones)
+      })
+      .catch(error=> { Alert.alert('Error'); }); 
+
+    }
   
     const fetchParkinglots = async()   => {
       let url = 'https://pubapi.parkkiopas.fi/public/v1/parking_area/'
@@ -53,17 +69,14 @@ export default function App() {
           try {
           const response = await fetch(url);
           const data = await response.json();
-          setAreas(data);
           zones.push(data);
-
           url = data.next;
           }
           catch(error) {
           console.error(error);
           }
         } while (url !== null)
-       // console.log(zones[0])
-       
+       setAreas(zones);
 
     }
 
@@ -93,8 +106,8 @@ export default function App() {
           {
             latitude: responseJson.results[0].locations[0].displayLatLng.lat,
             longitude: responseJson.results[0].locations[0].displayLatLng.lng,
-            latitudeDelta:0.0322,
-            longitudeDelta:0.0221,
+            latitudeDelta:0.00322,
+            longitudeDelta:0.00221,
           }
         )
       })
@@ -131,42 +144,32 @@ export default function App() {
         style={styles.map}
         region={destination} >
           
-          
-{/**   console.log(areas.features[0].properties.capacity_estimate)
-          {zones.map(zone=>{
+           { areas && areas.map((area, index) =>
             <Geojson
-            tappable
-            geojson= {zone}
-            />
-          })}
-
-            <Geojson
+            key = {index}
             tappable 
-            geojson= {areas}
+            geojson= {area}
             strokeColor='blue'
-            onPress={()=>{ console.log(areas.features[0].properties.capacity_estimate)}}
+            strokeWidth={1}
+            fillColor='green'
+            onPress={(event)=>{ console.log('you tapped', event.currentTarget)}}
             >
-            </Geojson>
+            </Geojson>)}
 
-            {areas.features.map((feature)=>
-            {console.log(feature.properties.capacity_estimate),
-              <Marker
-              key= {feature.id}
-             title= {feature.properties.capacity_estimate}
-              coordinates= {{
-                latitude: feature.geometry.coordinates[0][0][0][1],
-                longitude: feature.geometry.coordinates[0][0][0][0]
-              }} />
+            {areas.map(area =>
+              area.features.map(feature=>
+                <Marker
+                key={feature.id}
+                title={ feature.properties.capacity_estimate ? 'Kapasiteetti: ' + feature.properties.capacity_estimate.toString()
+                      : 'Täynnä'}
+                coordinate= {{
+                  latitude: feature.geometry.coordinates[0][0][0][1],
+                  longitude: feature.geometry.coordinates[0][0][0][0]
+                }}
+                />
+                )
+              )
             }
-            )}
-           */}
-           <Geojson
-            tappable 
-            geojson= {areas}
-            strokeColor='blue'
-            onPress={()=>{ console.log('you tapped')}}
-            >
-            </Geojson>
 
 
            
@@ -175,6 +178,7 @@ export default function App() {
             coordinate={myLocation}/>
             <Marker 
             title={address}
+            pinColor='green'
             coordinate={destination}
             >
               <Callout onPress={() => getRoute(destination, myLocation)}>
