@@ -14,3 +14,5 @@ Android-laitteella, jossa on myös GoogleMaps- sovellus, voidaan tästä sovellu
 Karttojen näyttäminen tapahtuu react-native-mapsin avulla.
 
 Tietojen tallennuksessa hyödynnetään firebase real-time databasea.
+
+Osoitteen koordinaatit haetaan mapQustin avulla.
